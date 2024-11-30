@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal R Chat</title>
+</head>
+<body>
+    <div>
+        <input id="userInput" type="text" placeholder="Your Name" />
+        <input id="messageInput" type="text" placeholder="Your Messsage" />
+        <button id="sendButton">Send</button>
+    </div>
+    <ul id="messageList"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+                                .withUrl("/chathub")
+                                .build();
+
+        document.getElementById("sendButton").disabled =true;
+        connection.start().then(()=> {
+            console.log("Connected");
+            document.getElementById("sendButton").disabled = false;
+         }).catch(err => console.log(err.toString()));
+
+        connection.on("ReceivedMessage", (user, message)=> {
+                const msg = `${user}: ${message}`;
+                const li = document.createElement("li");
+                li.textContent = msg;
+                document.getElementById("messageList").appendChild(li);
+        });
+
+        document.getElementById("sendButton").addEventListener("click", ()=> {
+            const user = document.getElementById("userInput").value;
+            const message = document.getElementById("messageInput").value;
+            connection.invoke("SendMessage", user, message).catch(err => console.error(err.toString()) );
+        })
+    </script>
+</body>
+</html>
